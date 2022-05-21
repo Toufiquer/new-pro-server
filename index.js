@@ -9,7 +9,6 @@ app.use(express.json());
 app.use(cors());
 
 const uri = `mongodb+srv://${process.env.APP_USER}:${process.env.APP_PASSWORD}@cluster0.qlqtd.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
 async function runServer() {
     const client = new MongoClient(uri, {
         useNewUrlParser: true,
@@ -22,6 +21,15 @@ async function runServer() {
             const servicesCollection = client
                 .db("servicesCollection")
                 .collection("services");
+            const query = {};
+            const cursor = servicesCollection.find(query);
+            const collection = await cursor.toArray();
+            res.send(collection);
+        });
+        app.get("/serviceSlot", async (req, res) => {
+            const servicesCollection = client
+                .db("servicesSlots")
+                .collection("slots");
             const query = {};
             const cursor = servicesCollection.find(query);
             const collection = await cursor.toArray();
