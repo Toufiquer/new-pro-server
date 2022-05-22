@@ -36,6 +36,16 @@ async function runServer() {
             res.send(collection);
         });
 
+        app.post("/booking", async (req, res) => {
+            const bookingCollection = client
+                .db("bookingCollection")
+                .collection("booking");
+            const booking = req.body;
+            console.log(booking);
+            const query = {};
+            const result = await bookingCollection.insertOne(booking);
+            res.send(result);
+        });
         app.get("/", (req, res) => {
             res.send("Node is working.");
         });
