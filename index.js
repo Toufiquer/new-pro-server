@@ -17,34 +17,61 @@ async function runServer() {
     });
     try {
         await client.connect();
-        app.get("/service", async (req, res) => {
-            const servicesCollection = client
-                .db("servicesCollection")
-                .collection("services");
-            const query = {};
-            const cursor = servicesCollection.find(query);
-            const collection = await cursor.toArray();
-            res.send(collection);
-        });
-        app.get("/serviceSlot", async (req, res) => {
-            const servicesCollection = client
-                .db("servicesSlots")
-                .collection("slots");
-            const query = {};
-            const cursor = servicesCollection.find(query);
-            const collection = await cursor.toArray();
-            res.send(collection);
+
+        const servicesCollection = client
+            .db("servicesCollection")
+            .collection("services");
+        const bookingCollection = client
+            .db("bookingCollection")
+            .collection("booking");
+
+        app.get("/available", async (req, res) => {
+            // working
+            const date = req.query.date || "May 23, 2022";
+
+            const services = await servicesCollection.find().toArray();
+            const query = { date: date };
+            const booking = await bookingCollection.find(query).toArray();
+
+            services.forEach(service => {
+                const serviceBooking = booking.filter(
+                    b => b.treatment === service.name
+                );
+                const booked = serviceBooking.map(s => s.slot);
+                service.booked = booked;
+            });
+
+            res.send(services);
+            // -- -- -- -- -
         });
 
+        app.get("/service", async (req, res) => {
+            const query = {};
+            const cursor = servicesCollection.find(query);
+            const collection = await cursor.toArray();
+            res.send(collection);
+        });
+        // app.get("/serviceSlot", async (req, res) => {
+        //     const query = {};
+        //     const cursor = servicesSlotsCollection.find(query);
+        //     const collection = await cursor.toArray();
+        //     res.send(collection);
+        // });
+
         app.post("/booking", async (req, res) => {
-            const bookingCollection = client
-                .db("bookingCollection")
-                .collection("booking");
             const booking = req.body;
             console.log(booking);
-            const query = {};
+            const query = {
+                treatment: booking.treatment,
+                date: booking.date,
+                patient: booking.patient,
+            };
+            const exists = await bookingCollection.findOne(query);
+            if (exists) {
+                return res.send({ success: false, booking: exists });
+            }
             const result = await bookingCollection.insertOne(booking);
-            res.send(result);
+            res.send({ success: true, result });
         });
         app.get("/", (req, res) => {
             res.send("Node is working.");
