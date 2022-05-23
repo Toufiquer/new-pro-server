@@ -48,7 +48,15 @@ async function runServer() {
             res.send(services);
             // -- -- -- -- -
         });
-
+        app.get("/dashboard", async (req, res) => {
+            const patient = req.query.treatment;
+            console.log(patient);
+            const query = { patient: patient };
+            // const query = {};
+            const booking = bookingCollection.find(query);
+            const cursor = await booking.toArray();
+            res.send(cursor);
+        });
         app.get("/service", async (req, res) => {
             const query = {};
             const cursor = servicesCollection.find(query);
