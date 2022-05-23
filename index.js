@@ -28,7 +28,7 @@ async function runServer() {
         app.get("/available", async (req, res) => {
             // working
             const date = req.query.date || "May 23, 2022";
-
+            console.log(req.query);
             const services = await servicesCollection.find().toArray();
             const query = { date: date };
             const booking = await bookingCollection.find(query).toArray();
@@ -39,6 +39,10 @@ async function runServer() {
                 );
                 const booked = serviceBooking.map(s => s.slot);
                 service.booked = booked;
+                const available = service.slots.filter(
+                    slot => !booked.includes(slot)
+                );
+                service.available = available;
             });
 
             res.send(services);
