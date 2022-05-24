@@ -42,7 +42,7 @@ async function runServer() {
             .collection("booking");
         const userCollection = client.db("userCollection").collection("user");
 
-        // add User
+        // add User use in useToken
         app.put("/user", async (req, res) => {
             const name = req.body.name;
             const email = req.body.email;
@@ -61,6 +61,54 @@ async function runServer() {
             res.send({ result, token });
         });
 
+        app.get("/allUsers", async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        });
+        app.delete("/delete", async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const result = await userCollection.deleteOne(query);
+            res.send(result);
+        });
+        app.put("/mkAdmin", async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const findOne = await userCollection.findOne(query);
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    name: findOne.name,
+                    email: findOne.email,
+                    role: "Admin",
+                },
+            };
+            const result = await userCollection.updateOne(
+                query,
+                updateDoc,
+                options
+            );
+            res.send(result);
+        });
+        app.put("/mkClient", async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const findOne = await userCollection.findOne(query);
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    name: findOne.name,
+                    email: findOne.email,
+                    role: "Client",
+                },
+            };
+            const result = await userCollection.updateOne(
+                query,
+                updateDoc,
+                options
+            );
+            res.send(result);
+        });
         app.get("/available", async (req, res) => {
             // working
             const date = req.query.date || "May 23, 2022";
