@@ -24,6 +24,23 @@ async function runServer() {
         const bookingCollection = client
             .db("bookingCollection")
             .collection("booking");
+        const userCollection = client.db("userCollection").collection("user");
+
+        // add User
+        app.put("/user", async (req, res) => {
+            const name = req.body.name;
+            const email = req.body.email;
+            const user = { name, email, role: "" };
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await userCollection.updateOne(
+                filter,
+                updateDoc,
+                options
+            );
+            res.send(result);
+        });
 
         app.get("/available", async (req, res) => {
             // working
