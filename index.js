@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3500;
@@ -39,7 +40,10 @@ async function runServer() {
                 updateDoc,
                 options
             );
-            res.send(result);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {
+                expiresIn: "1h",
+            });
+            res.send({ result, token });
         });
 
         app.get("/available", async (req, res) => {
