@@ -42,11 +42,26 @@ async function runServer() {
             .collection("booking");
         const userCollection = client.db("userCollection").collection("user");
 
+        app.get("/user", async (req, res) => {
+            const result = await userCollection.findOne({
+                email: req.query.email,
+            });
+            const role = result?.role;
+            // console.log("result", result);
+            if (role === "admin") {
+                return res.send({ result: true });
+            } else {
+                return res
+                    .status(403)
+                    .send({ result: false, message: "Forbidden Access" });
+            }
+        });
+
         // add User use in useToken
         app.put("/user", async (req, res) => {
             const name = req.body.name;
             const email = req.body.email;
-            const user = { name, email, role: "" };
+            const user = { name, email };
             const filter = { email: email };
             const options = { upsert: true };
             const updateDoc = { $set: user };
@@ -80,7 +95,7 @@ async function runServer() {
                 $set: {
                     name: findOne.name,
                     email: findOne.email,
-                    role: "Admin",
+                    role: "admin",
                 },
             };
             const result = await userCollection.updateOne(
@@ -99,7 +114,7 @@ async function runServer() {
                 $set: {
                     name: findOne.name,
                     email: findOne.email,
-                    role: "Client",
+                    role: "client",
                 },
             };
             const result = await userCollection.updateOne(
@@ -112,7 +127,7 @@ async function runServer() {
         app.get("/available", async (req, res) => {
             // working
             const date = req.query.date || "May 23, 2022";
-            console.log(req.query);
+            // console.log(req.query);
             const services = await servicesCollection.find().toArray();
             const query = { date: date };
             const booking = await bookingCollection.find(query).toArray();
@@ -135,7 +150,7 @@ async function runServer() {
         app.get("/dashboard", verifyJWT, async (req, res) => {
             const patient = req.query.treatment;
 
-            console.log(req.decoded);
+            // console.log(req.decoded);
             const decodedEmail = req.decoded.email;
             if (patient === decodedEmail) {
                 // const tokenBearer = req.headers.authorization;
@@ -166,7 +181,7 @@ async function runServer() {
         app.post("/booking", verifyJWT, async (req, res) => {
             const booking = req.body;
             const decodedEmail = req.decoded.email;
-            console.log("decoded", booking.patient);
+            // console.log("decoded", booking.patient);
             if (booking.patient === decodedEmail) {
                 const query = {
                     treatment: booking.treatment,
