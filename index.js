@@ -48,7 +48,22 @@ async function runServer() {
         const doctorsCollection = client
             .db("doctorsCollection")
             .collection("doctors");
-
+        // Verify Admin
+        const verifyAdmin = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const result = await userCollection.findOne({
+                email: decodedEmail,
+            });
+            const role = result?.role;
+            // console.log("result", result);
+            if (role === "admin") {
+                next();
+            } else {
+                return res
+                    .status(403)
+                    .send({ result: false, message: "Forbidden Access" });
+            }
+        };
         app.get("/user", async (req, res) => {
             const result = await userCollection.findOne({
                 email: req.query.email,
@@ -197,9 +212,19 @@ async function runServer() {
             res.send(collection);
         });
 
-        app.post("/addDoctor", async (req, res) => {
+        app.post("/addDoctor", verifyJWT, verifyAdmin, async (req, res) => {
             const doctor = req.body;
             const result = await doctorsCollection.insertOne(doctor);
+            res.send(result);
+        });
+        app.get("/allDoctors", verifyJWT, verifyAdmin, async (req, res) => {
+            const result = await doctorsCollection.find().toArray();
+            res.send(result);
+        });
+        app.delete("/doctor", verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.query.email;
+            const filter = { email: email };
+            const result = await doctorsCollection.deleteOne(filter);
             res.send(result);
         });
 
