@@ -209,10 +209,10 @@ async function runServer() {
                 return res.status(403).send({ message: "Forbidden Access" });
             }
         });
+    } finally {
         app.get("/", (req, res) => {
             res.send("Node is working.");
         });
-    } finally {
     }
 }
 runServer().catch(console.error);
