@@ -45,6 +45,9 @@ async function runServer() {
             .db("bookingCollection")
             .collection("booking");
         const userCollection = client.db("userCollection").collection("user");
+        const doctorsCollection = client
+            .db("doctorsCollection")
+            .collection("doctors");
 
         app.get("/user", async (req, res) => {
             const result = await userCollection.findOne({
@@ -186,12 +189,19 @@ async function runServer() {
             const collection = await cursor.toArray();
             res.send(collection);
         });
-        // app.get("/serviceSlot", async (req, res) => {
-        //     const query = {};
-        //     const cursor = servicesSlotsCollection.find(query);
-        //     const collection = await cursor.toArray();
-        //     res.send(collection);
-        // });
+
+        app.get("/doctorService", async (req, res) => {
+            const query = {};
+            const cursor = servicesCollection.find(query).project({ name: 1 });
+            const collection = await cursor.toArray();
+            res.send(collection);
+        });
+
+        app.post("/addDoctor", async (req, res) => {
+            const doctor = req.body;
+            const result = await doctorsCollection.insertOne(doctor);
+            res.send(result);
+        });
 
         app.post("/booking", verifyJWT, async (req, res) => {
             const booking = req.body;
