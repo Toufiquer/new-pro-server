@@ -31,6 +31,10 @@ async function runServer() {
         useUnifiedTopology: true,
         serverApi: ServerApiVersion.v1,
     });
+
+    app.get("/", (req, res) => {
+        res.send("Node is working.");
+    });
     try {
         await client.connect();
 
@@ -210,11 +214,9 @@ async function runServer() {
             }
         });
     } finally {
-        app.get("/", (req, res) => {
-            res.send("Node is working.");
-        });
     }
 }
+
 runServer().catch(console.error);
 app.listen(port, () => {
     console.log("listening to the port ", port);
