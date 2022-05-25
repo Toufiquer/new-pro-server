@@ -76,9 +76,20 @@ async function runServer() {
             res.send({ result, token });
         });
 
-        app.get("/allUsers", async (req, res) => {
-            const result = await userCollection.find().toArray();
-            res.send(result);
+        app.get("/allUsers", verifyJWT, async (req, res) => {
+            const admin = await userCollection.findOne({
+                email: req.query.email,
+            });
+            const role = admin?.role;
+            console.log("result", admin);
+            if (role === "admin") {
+                const result = await userCollection.find().toArray();
+                res.send(result);
+            } else {
+                return res
+                    .status(403)
+                    .send({ result: false, message: "Forbidden Access" });
+            }
         });
         app.delete("/delete", async (req, res) => {
             const email = req.query.email;
